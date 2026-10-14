@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Input, Textarea } from '../ui/Input';
 import { Badge } from '../ui/Badge';
 import { Alert } from '../ui/Alert';
+import { agentApi } from '../../services/apiClient';
 import { 
   Bot, 
   Cpu, 
@@ -13,7 +14,8 @@ import {
   HelpCircle,
   Calculator,
   FileText,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 
 const AVAILABLE_MODELS = [
@@ -23,6 +25,7 @@ const AVAILABLE_MODELS = [
     description: 'High-reasoning instruction-following model with native JSON support on Groq.',
     context: '32k context',
     recommended: true,
+    availableOnProvider: true,
   },
   {
     id: 'llama-3.3-70b-versatile',
@@ -30,6 +33,7 @@ const AVAILABLE_MODELS = [
     description: 'High-reasoning model optimized for complex instructions and tool orchestration.',
     context: '128k context',
     recommended: false,
+    availableOnProvider: false,
   },
   {
     id: 'llama-3.1-8b-instant',
@@ -37,6 +41,7 @@ const AVAILABLE_MODELS = [
     description: 'Ultra-fast inference model ideal for low-latency tasks and rapid prototyping.',
     context: '128k context',
     recommended: false,
+    availableOnProvider: false,
   },
   {
     id: 'openai/gpt-oss-120b',
@@ -44,6 +49,7 @@ const AVAILABLE_MODELS = [
     description: 'Massive open-weights foundation model available on Groq.',
     context: '128k context',
     recommended: false,
+    availableOnProvider: true,
   },
   {
     id: 'openai/gpt-oss-20b',
@@ -51,6 +57,7 @@ const AVAILABLE_MODELS = [
     description: 'Compact high-speed open-weights model on Groq.',
     context: '128k context',
     recommended: false,
+    availableOnProvider: true,
   },
   {
     id: 'mixtral-8x7b-32768',
@@ -58,6 +65,7 @@ const AVAILABLE_MODELS = [
     description: 'Mixture of Experts architecture balancing speed and nuanced prompt response.',
     context: '32k context',
     recommended: false,
+    availableOnProvider: false,
   },
 ];
 
@@ -102,16 +110,55 @@ export const AgentFormModal = ({
   const [maxTurns, setMaxTurns] = useState(3);
   const [timeoutSeconds, setTimeoutSeconds] = useState(30);
 
+  // Live model availability
+  const [modelsList, setModelsList] = useState(AVAILABLE_MODELS);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+
   // Validation & Error states
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+
+  // Fetch verified provider models when modal opens
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen) {
+      setIsLoadingModels(true);
+      agentApi.getSupportedModels()
+        .then((res) => {
+          if (!isMounted) return;
+          if (Array.isArray(res.verified) && res.verified.length > 0) {
+            setModelsList(res.verified);
+
+            // If creating an agent, ensure an active model is selected by default
+            if (!agentToEdit) {
+              const active = res.verified.find((m) => m.availableOnProvider !== false);
+              if (active) {
+                setModel((prev) => {
+                  const currentObj = res.verified.find((m) => m.id === prev);
+                  return (currentObj && currentObj.availableOnProvider !== false) ? prev : active.id;
+                });
+              }
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to fetch live provider models:', err);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingModels(false);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, agentToEdit]);
 
   useEffect(() => {
     if (agentToEdit) {
       setName(agentToEdit.name || '');
       setDescription(agentToEdit.description || '');
       setInstructions(agentToEdit.instructions || '');
-      setModel(agentToEdit.model || 'llama-3.3-70b-versatile');
+      setModel(agentToEdit.model || 'qwen/qwen3.8-27b');
       setTools(Array.isArray(agentToEdit.tools) ? agentToEdit.tools : []);
       setTemperature(agentToEdit.parameters?.temperature ?? 0.7);
       setMaxTokens(agentToEdit.parameters?.maxTokens ?? 1024);
@@ -139,6 +186,9 @@ export const AgentFormModal = ({
     );
   };
 
+  const selectedModelObj = modelsList.find((m) => m.id === model);
+  const isSelectedModelUnavailable = selectedModelObj && selectedModelObj.availableOnProvider === false;
+
   const validateForm = () => {
     const errs = {};
     if (!name.trim()) {
@@ -157,6 +207,10 @@ export const AgentFormModal = ({
       errs.instructions = 'System instructions are required.';
     } else if (instructions.trim().length < 10) {
       errs.instructions = 'Instructions must be at least 10 characters long.';
+    }
+
+    if (isSelectedModelUnavailable) {
+      errs.model = `Model "${model}" is unavailable on Groq. Please choose an active model.`;
     }
 
     if (temperature < 0.0 || temperature > 2.0) {
@@ -299,24 +353,46 @@ export const AgentFormModal = ({
 
         {/* 3. Model Selection */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-hairline pb-2">
-            <Sliders className="w-4 h-4 text-ink" />
-            <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-ink">
-              3. Model Inference Engine
-            </h3>
+          <div className="flex items-center justify-between border-b border-hairline pb-2">
+            <div className="flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-ink" />
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-ink">
+                3. Model Inference Engine
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-ink-muted">
+              Provider: Groq Cloud
+            </span>
           </div>
 
+          {isSelectedModelUnavailable && (
+            <Alert variant="warning" title="Model Currently Unavailable">
+              The model <span className="font-mono font-semibold">"{model}"</span> is not accessible on the active Groq provider. Please select an active alternative model before saving.
+            </Alert>
+          )}
+
+          {errors.model && (
+            <p className="text-xs text-status-error font-mono">{errors.model}</p>
+          )}
+
           <div className="grid grid-cols-1 gap-2.5">
-            {AVAILABLE_MODELS.map((m) => {
+            {modelsList.map((m) => {
               const isSelected = model === m.id;
+              const isAvailable = m.availableOnProvider !== false;
               return (
                 <div
                   key={m.id}
-                  onClick={() => setModel(m.id)}
-                  className={`p-3 rounded-sm border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-ink bg-white shadow-editorial ring-1 ring-ink'
-                      : 'border-hairline bg-paper hover:border-ink/40'
+                  onClick={() => {
+                    if (isAvailable) {
+                      setModel(m.id);
+                    }
+                  }}
+                  className={`p-3 rounded-sm border transition-all ${
+                    !isAvailable
+                      ? 'opacity-55 bg-paper-muted cursor-not-allowed border-hairline'
+                      : isSelected
+                      ? 'border-ink bg-white shadow-editorial ring-1 ring-ink cursor-pointer'
+                      : 'border-hairline bg-paper hover:border-ink/40 cursor-pointer'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -325,10 +401,11 @@ export const AgentFormModal = ({
                         type="radio"
                         name="agent-model"
                         checked={isSelected}
-                        onChange={() => setModel(m.id)}
-                        className="text-ink focus:ring-ink"
+                        disabled={!isAvailable}
+                        onChange={() => isAvailable && setModel(m.id)}
+                        className="text-ink focus:ring-ink disabled:opacity-40"
                       />
-                      <span className="font-serif font-medium text-ink text-sm">
+                      <span className={`font-serif font-medium text-sm ${!isAvailable ? 'text-ink-muted line-through decoration-hairline' : 'text-ink'}`}>
                         {m.name}
                       </span>
                       {m.recommended && (
@@ -336,14 +413,28 @@ export const AgentFormModal = ({
                           Recommended
                         </Badge>
                       )}
+                      {isAvailable ? (
+                        <Badge variant="success" size="sm">
+                          Available
+                        </Badge>
+                      ) : (
+                        <Badge variant="error" size="sm">
+                          Unavailable on Groq
+                        </Badge>
+                      )}
                     </div>
                     <span className="text-[10px] font-mono text-ink-muted">
-                      {m.context}
+                      {m.contextWindow ? `${Math.round(m.contextWindow / 1024)}k context` : (m.context || '')}
                     </span>
                   </div>
                   <p className="text-xs text-ink-secondary mt-1 pl-5">
                     {m.description}
                   </p>
+                  {!isAvailable && (
+                    <p className="text-[11px] font-mono text-status-error mt-1 pl-5">
+                      Inactive on active Groq account. Choose an active alternative.
+                    </p>
+                  )}
                 </div>
               );
             })}

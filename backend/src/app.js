@@ -119,6 +119,7 @@ app.use((err, req, res, next) => {
     error: {
       code: errorCode,
       message,
+      ...(err.details ? { details: err.details } : {}),
       ...(config.isProduction || statusCode !== 500 ? {} : { stack: err.stack }),
     },
   });

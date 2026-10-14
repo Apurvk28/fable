@@ -66,7 +66,7 @@ export const AiAssistedModal = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [model, setModel] = useState('llama-3.3-70b-versatile');
+  const [model, setModel] = useState('qwen/qwen3.8-27b');
   const [tools, setTools] = useState([]);
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1024);
@@ -101,13 +101,13 @@ export const AiAssistedModal = ({
       const prop = res.proposal;
 
       setProposal(prop);
-      setModelUsed(res.modelUsed || 'llama-3.3-70b-versatile');
+      setModelUsed(res.modelUsed || 'qwen/qwen3.8-27b');
 
       // Populate review state
       setName(prop.name || 'AI Assistant');
       setDescription(prop.description || '');
       setInstructions(prop.instructions || '');
-      setModel(prop.model || 'llama-3.3-70b-versatile');
+      setModel(prop.model || res.modelUsed || 'qwen/qwen3.8-27b');
       setTools(Array.isArray(prop.tools) ? prop.tools : []);
       setTemperature(prop.parameters?.temperature ?? 0.7);
       setMaxTokens(prop.parameters?.maxTokens ?? 1024);
