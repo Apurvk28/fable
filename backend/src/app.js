@@ -3,6 +3,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
+import agentRoutes from './routes/agentRoutes.js';
+import { injectCsrfCookie } from './middleware/csrfMiddleware.js';
 
 const app = express();
 
@@ -10,7 +12,7 @@ const app = express();
 const allowedOrigins = [
   config.clientUrl,
   'http://localhost:5173',
-  'http://127.0.0.1:5173'
+  'http://127.0.0.1:5173',
 ];
 
 app.use(
@@ -20,17 +22,27 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error(`[CORS Policy] Origin "${origin}" not allowed by CORS`));
+      const corsError = new Error(`Origin "${origin}" not allowed by CORS policy.`);
+      corsError.statusCode = 403;
+      corsError.code = 'CORS_ORIGIN_DENIED';
+      return callback(corsError);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-Fable-Client', 'X-XSRF-TOKEN']
+    allowedHeaders: [
+      'Content-Type',
+      'X-Requested-With',
+      'X-Fable-Client',
+      'X-XSRF-TOKEN',
+      'x-csrf-token',
+    ],
   })
 );
 
-// 2. Request Parsing Middleware
+// 2. Request Parsing & Cookie Handling Middleware
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.use(injectCsrfCookie);
 
 // 3. Lightweight Request Logger for Development Observability
 if (!config.isProduction) {
@@ -51,20 +63,21 @@ app.get('/health', (req, res) => {
     service: 'fable-backend',
     version: '1.0.0',
     environment: config.nodeEnv,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 // 5. API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/agents', agentRoutes);
 
 // 6. 404 Route Not Found Handler
 app.use((req, res) => {
   res.status(404).json({
     error: {
       code: 'ROUTE_NOT_FOUND',
-      message: `Endpoint ${req.method} ${req.originalUrl} does not exist.`
-    }
+      message: `Endpoint ${req.method} ${req.originalUrl} does not exist.`,
+    },
   });
 });
 
@@ -73,6 +86,13 @@ app.use((err, req, res, next) => {
   let statusCode = err.status || err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
   let errorCode = err.code || 'INTERNAL_ERROR';
+
+  // Handle Intentional CORS Rejections cleanly as 403 Forbidden
+  if (err.code === 'CORS_ORIGIN_DENIED' || err.message?.includes('not allowed by CORS')) {
+    statusCode = 403;
+    errorCode = 'CORS_ORIGIN_DENIED';
+    message = 'Request origin not allowed by CORS policy.';
+  }
 
   // Handle Mongoose duplicate key error (E11000)
   if (err.code === 11000) {
@@ -91,7 +111,7 @@ app.use((err, req, res, next) => {
   }
 
   console.error(`[Server Error] ${statusCode} - ${message}`);
-  if (!config.isProduction && err.stack) {
+  if (!config.isProduction && err.stack && statusCode === 500) {
     console.error(err.stack);
   }
 
@@ -99,8 +119,8 @@ app.use((err, req, res, next) => {
     error: {
       code: errorCode,
       message,
-      ...(config.isProduction ? {} : { stack: err.stack })
-    }
+      ...(config.isProduction || statusCode !== 500 ? {} : { stack: err.stack }),
+    },
   });
 });
 

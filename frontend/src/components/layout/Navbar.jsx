@@ -1,31 +1,68 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { ShieldCheck, LogOut, User as UserIcon } from 'lucide-react';
+import { ShieldCheck, LogOut, Bot, LayoutDashboard } from 'lucide-react';
 
 export const Navbar = ({ backendStatus }) => {
   const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const isNavActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <header className="border-b border-hairline bg-paper/90 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-3 group focus:outline-none">
-          <div className="w-8 h-8 rounded-sm bg-ink flex items-center justify-center text-fable-chartreuse font-mono font-bold text-lg shadow-editorial transition-transform group-hover:scale-105">
-            F
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-xl tracking-tight text-ink">Fable</span>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted border border-hairline px-1.5 py-0.2 rounded-sm bg-paper-muted">
-                v1.0-Phase2
-              </span>
+        {/* Brand & Left Nav */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-3 group focus:outline-none">
+            <div className="w-8 h-8 rounded-sm bg-ink flex items-center justify-center text-fable-chartreuse font-mono font-bold text-lg shadow-editorial transition-transform group-hover:scale-105">
+              F
             </div>
-            <p className="text-[11px] text-ink-secondary hidden sm:block">Imagine It. Automate It.</p>
-          </div>
-        </Link>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-serif font-bold text-xl tracking-tight text-ink">Fable</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted border border-hairline px-1.5 py-0.2 rounded-sm bg-paper-muted">
+                  v1.0-Phase3
+                </span>
+              </div>
+              <p className="text-[11px] text-ink-secondary hidden sm:block">Imagine It. Automate It.</p>
+            </div>
+          </Link>
+
+          {/* Primary In-App Navigation when Authenticated */}
+          {user && (
+            <nav className="hidden sm:flex items-center gap-1 pl-4 border-l border-hairline">
+              <Link
+                to="/"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono uppercase tracking-wider transition-colors ${
+                  isNavActive('/')
+                    ? 'bg-ink text-white font-semibold'
+                    : 'text-ink-secondary hover:text-ink hover:bg-paper-muted'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </Link>
+
+              <Link
+                to="/agents"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono uppercase tracking-wider transition-colors ${
+                  isNavActive('/agents')
+                    ? 'bg-ink text-white font-semibold'
+                    : 'text-ink-secondary hover:text-ink hover:bg-paper-muted'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span>Agents</span>
+              </Link>
+            </nav>
+          )}
+        </div>
 
         {/* Status Indicators & Auth Controls */}
         <div className="flex items-center gap-3">

@@ -9,7 +9,10 @@ export const config = {
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   mongodbUri: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRET,
-  isCrossSite: process.env.COOKIE_CROSS_SITE === 'true'
+  // Dedicated CSRF Secret with graceful fallback to jwtSecret for cryptographic separation
+  csrfSecret: process.env.CSRF_SECRET || process.env.JWT_SECRET,
+  isCrossSite: process.env.COOKIE_CROSS_SITE === 'true',
+  groqApiKey: process.env.GROQ_API_KEY,
 };
 
 export const validateEnv = () => {

@@ -12,7 +12,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from './components/ui/Badge';
 import { Modal } from './components/ui/Modal';
 import { Alert } from './components/ui/Alert';
-import { checkHealth } from './services/apiClient';
+import { checkHealth, agentApi } from './services/apiClient';
+import { AgentList } from './pages/Agents/AgentList';
 import { 
   Activity, 
   Layers, 
@@ -22,7 +23,10 @@ import {
   Lock, 
   Key, 
   Database,
-  UserCheck
+  UserCheck,
+  Bot,
+  ArrowRight,
+  Plus
 } from 'lucide-react';
 
 function DashboardView() {
@@ -31,6 +35,8 @@ function DashboardView() {
   const [healthStatus, setHealthStatus] = useState('loading');
   const [healthLatency, setHealthLatency] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [agentCount, setAgentCount] = useState(0);
+  const [recentAgents, setRecentAgents] = useState([]);
 
   // UI Interactive State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,8 +61,19 @@ function DashboardView() {
     }
   };
 
+  const fetchAgentsSummary = async () => {
+    try {
+      const res = await agentApi.getAgents();
+      setAgentCount(res.totalCount || 0);
+      setRecentAgents((res.agents || []).slice(0, 3));
+    } catch (err) {
+      console.warn('Failed to fetch agents summary:', err);
+    }
+  };
+
   useEffect(() => {
     fetchHealth();
+    fetchAgentsSummary();
   }, []);
 
   const handleTestInput = (e) => {
@@ -129,6 +146,74 @@ function DashboardView() {
               </span>
             </div>
           </div>
+        </section>
+
+        {/* Phase 3 Agent Workshop Overview & Quick Actions */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-ink-secondary" />
+              <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
+                Agent Workshop (Phase 3)
+              </h2>
+            </div>
+            <Link to="/agents">
+              <Button variant="ghost" size="sm" icon={ArrowRight} className="text-xs font-mono">
+                Open Workshop
+              </Button>
+            </Link>
+          </div>
+
+          <Card className="bg-white">
+            <CardHeader className="bg-fable-chartreuse/15">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-sm bg-ink text-fable-chartreuse flex items-center justify-center font-bold">
+                    <Bot className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Specialized AI Agents</CardTitle>
+                    <CardDescription>
+                      {agentCount === 0
+                        ? 'No agents configured yet in your isolated workshop'
+                        : `You have ${agentCount} configured ${agentCount === 1 ? 'agent' : 'agents'} ready for testing`}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link to="/agents">
+                    <Button variant="primary" size="sm" icon={Plus}>
+                      Manage Agents
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardHeader>
+
+            {recentAgents.length > 0 && (
+              <CardContent className="pt-4">
+                <div className="text-xs font-mono text-ink-muted uppercase tracking-wider mb-2">
+                  Recent Agents
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {recentAgents.map((ag) => (
+                    <div
+                      key={ag.id}
+                      className="p-3 bg-paper rounded-sm border border-hairline flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-medium text-xs text-ink truncate font-sans">{ag.name}</div>
+                        <div className="text-[10px] font-mono text-ink-muted mt-0.5">{ag.model}</div>
+                      </div>
+                      <div className="mt-2 text-[10px] font-mono text-ink-secondary">
+                        {ag.tools?.length || 0} tools enabled
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            )}
+          </Card>
         </section>
 
         {/* 1. Live Backend Connectivity Card */}
@@ -335,6 +420,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <DashboardView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agents"
+            element={
+              <ProtectedRoute>
+                <AgentList />
               </ProtectedRoute>
             }
           />

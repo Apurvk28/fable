@@ -1,6 +1,6 @@
 /**
  * Fable API Client
- * Built on native fetch with credentialed CORS and standard headers.
+ * Built on native fetch with credentialed CORS, HMAC-signed CSRF protection, and standard headers.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -14,14 +14,49 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Utility to extract a cookie value by name from document.cookie
+ */
+export const getCookie = (name) => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+  return match ? decodeURIComponent(match[3]) : null;
+};
+
 export const apiClient = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  const method = (options.method || 'GET').toUpperCase();
+  const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
     'X-Fable-Client': 'web',
     'X-Requested-With': 'XMLHttpRequest',
   };
+
+  // Attach X-XSRF-TOKEN on mutating requests
+  if (mutatingMethods.includes(method)) {
+    let csrfToken = getCookie('XSRF-TOKEN');
+
+    // If no CSRF cookie exists yet in the browser, initialize it before submitting
+    if (!csrfToken && endpoint !== '/api/v1/auth/csrf-token') {
+      try {
+        const csrfRes = await fetch(`${API_BASE_URL}/api/v1/auth/csrf-token`, {
+          credentials: 'include',
+        });
+        if (csrfRes.ok) {
+          const csrfJson = await csrfRes.json();
+          csrfToken = csrfJson?.csrfToken || getCookie('XSRF-TOKEN');
+        }
+      } catch (e) {
+        console.warn('Failed to pre-fetch CSRF token:', e);
+      }
+    }
+
+    if (csrfToken) {
+      defaultHeaders['X-XSRF-TOKEN'] = csrfToken;
+    }
+  }
 
   const config = {
     ...options,
@@ -64,6 +99,7 @@ export const checkHealth = () => apiClient('/health');
 
 // Phase 2: Authentication API Methods
 export const authApi = {
+  getCsrfToken: () => apiClient('/api/v1/auth/csrf-token'),
   register: (userData) =>
     apiClient('/api/v1/auth/register', {
       method: 'POST',
@@ -80,3 +116,41 @@ export const authApi = {
     }),
   getMe: () => apiClient('/api/v1/auth/me'),
 };
+
+// Phase 3: Agent Management API Methods
+export const agentApi = {
+  getAgents: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.q) query.set('q', params.q);
+    if (params.tool) query.set('tool', params.tool);
+    if (params.sort) query.set('sort', params.sort);
+    const queryString = query.toString();
+    return apiClient(`/api/v1/agents${queryString ? `?${queryString}` : ''}`);
+  },
+  getAgent: (id) => apiClient(`/api/v1/agents/${id}`),
+  createAgent: (agentData) =>
+    apiClient('/api/v1/agents', {
+      method: 'POST',
+      body: JSON.stringify(agentData),
+    }),
+  updateAgent: (id, agentData) =>
+    apiClient(`/api/v1/agents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(agentData),
+    }),
+  deleteAgent: (id) =>
+    apiClient(`/api/v1/agents/${id}`, {
+      method: 'DELETE',
+    }),
+  duplicateAgent: (id) =>
+    apiClient(`/api/v1/agents/${id}/duplicate`, {
+      method: 'POST',
+    }),
+  generateConfig: (data) =>
+    apiClient('/api/v1/agents/generate-config', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getSupportedModels: () => apiClient('/api/v1/agents/models'),
+};
+
