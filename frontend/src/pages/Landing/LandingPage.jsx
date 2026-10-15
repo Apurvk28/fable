@@ -8,6 +8,7 @@ import { ToolsSection } from '../../components/landing/ToolsSection';
 import { InteractiveSandboxDemo } from '../../components/landing/InteractiveSandboxDemo';
 import { ExecutionTraceShowcase } from '../../components/landing/ExecutionTraceShowcase';
 import ScrollAnimation from '../../components/ui/you-can-scroll';
+import { Cta69 } from '@/components/ui/cta69';
 import { LandingFooter } from '../../components/landing/LandingFooter';
 
 export const LandingPage = () => {
@@ -39,11 +40,23 @@ export const LandingPage = () => {
         {/* Section F: Observability & Execution Trace */}
         <ExecutionTraceShowcase />
 
-        {/* Section G: Kinetic Scroll Canvas (Pre-login only) */}
-        {!isAuthenticated && <ScrollAnimation />}
+        {/* Section G: Kinetic Scroll Canvas */}
+        <ScrollAnimation />
+
+        {/* Section H: Call to Action Marquee (Cta69) */}
+        <Cta69
+          badge={{ label: "Last word" }}
+          heading="Let's make something worth keeping."
+          button={{ label: "Start the conversation", href: "https://beste.co" }}
+          labels={{
+            marqueePhrase: "Worth keeping",
+            note: "No decks, no detours: one room, your problem, and a studio that ships.",
+            footnote: "Booking two new partners for the autumn cycle.",
+          }}
+        />
       </main>
 
-      {/* Section G: Footer & Final Invitation */}
+      {/* Footer */}
       <LandingFooter isAuthenticated={isAuthenticated} />
     </div>
   );

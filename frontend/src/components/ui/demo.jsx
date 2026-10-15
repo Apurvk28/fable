@@ -1,9 +1,16 @@
-import ScrollAnimation from "./you-can-scroll";
+import { Cta69 } from "@/components/ui/cta69";
 
-export default function DemoOne() {
+export default function Cta69Demo() {
   return (
-    <div className="w-full min-h-screen bg-paper">
-      <ScrollAnimation />
-    </div>
+    <Cta69
+      badge={{ label: "Last word" }}
+      heading="Let's make something worth keeping."
+      button={{ label: "Start the conversation", href: "https://beste.co" }}
+      labels={{
+        marqueePhrase: "Worth keeping",
+        note: "No decks, no detours: one room, your problem, and a studio that ships.",
+        footnote: "Booking two new partners for the autumn cycle.",
+      }}
+    />
   );
 }
