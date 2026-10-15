@@ -39,4 +39,10 @@ export const validateEnv = () => {
       '[Config Error] Missing or insecure JWT_SECRET. Must be at least 16 characters in backend/.env'
     );
   }
+
+  if (!config.groqApiKey) {
+    console.warn(
+      '[Config Warning] GROQ_API_KEY is not set. The server will run, but AI agent generation and execution will return 503 PROVIDER_NOT_CONFIGURED.'
+    );
+  }
 };

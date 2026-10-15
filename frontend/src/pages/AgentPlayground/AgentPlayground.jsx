@@ -61,6 +61,7 @@ export const AgentPlayground = () => {
   const [recentExecutions, setRecentExecutions] = useState([]);
   const [expandedTraces, setExpandedTraces] = useState({});
   const [errorBanner, setErrorBanner] = useState(null);
+  const [liveStatusMessage, setLiveStatusMessage] = useState('');
 
   const messagesEndRef = useRef(null);
 
@@ -136,6 +137,7 @@ export const AgentPlayground = () => {
     setExecutionState('idle');
     setErrorBanner(null);
     setPromptInput('');
+    setLiveStatusMessage('Playground session reset.');
   };
 
   const handleSubmit = async (e) => {
@@ -146,6 +148,7 @@ export const AgentPlayground = () => {
     setPromptInput('');
     setErrorBanner(null);
     setExecutionState('running');
+    setLiveStatusMessage('Agent is running task. Thinking and executing tool loop...');
 
     if (mode === 'chat') {
       // Append user message immediately to chat stream
@@ -162,6 +165,10 @@ export const AgentPlayground = () => {
         const res = await agentApi.chat(selectedAgent.id, userInput, historyPayload);
         setCurrentExecution(res);
         setExecutionState('completed');
+        const toolCount = res.toolTraces?.length || 0;
+        setLiveStatusMessage(
+          `Execution completed in ${res.durationMs || 0} milliseconds with ${toolCount} tool ${toolCount === 1 ? 'call' : 'calls'}.`
+        );
 
         // Append assistant response to chat stream
         setChatMessages((prev) => [
@@ -180,6 +187,7 @@ export const AgentPlayground = () => {
       } catch (err) {
         setExecutionState('failed');
         setErrorBanner(err.message || 'Execution failed.');
+        setLiveStatusMessage(`Execution failed: ${err.message || 'Execution failed.'}`);
         setChatMessages((prev) => [
           ...prev,
           {
@@ -195,12 +203,17 @@ export const AgentPlayground = () => {
         const res = await agentApi.runTask(selectedAgent.id, userInput);
         setCurrentExecution(res);
         setExecutionState('completed');
+        const toolCount = res.toolTraces?.length || 0;
+        setLiveStatusMessage(
+          `Execution completed in ${res.durationMs || 0} milliseconds with ${toolCount} tool ${toolCount === 1 ? 'call' : 'calls'}.`
+        );
 
         // Refresh recent runs
         agentApi.getRecentExecutions(selectedAgent.id).then((r) => setRecentExecutions(r.executions || []));
       } catch (err) {
         setExecutionState('failed');
         setErrorBanner(err.message || 'Task execution failed.');
+        setLiveStatusMessage(`Task execution failed: ${err.message || 'Execution failed.'}`);
       }
     }
   };
@@ -243,6 +256,16 @@ export const AgentPlayground = () => {
       <Navbar />
 
       <PageContainer className="flex-1 py-6 space-y-6">
+        {/* Screen reader live region for execution status announcements */}
+        <div
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {liveStatusMessage}
+        </div>
+
         {/* Navigation Breadcrumb & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-hairline pb-4">
           <div className="flex items-center gap-3">

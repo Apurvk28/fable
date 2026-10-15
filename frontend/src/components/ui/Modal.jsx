@@ -20,9 +20,10 @@ export const Modal = ({
   maxWidth,
 }) => {
   const modalRef = useRef(null);
+  const previousActiveElementRef = useRef(null);
   const resolvedMaxWidth = maxWidth || SIZE_MAP[size] || 'max-w-lg';
 
-  // Close on Escape key press
+  // Manage focus and close on Escape key press
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && isOpen) {
@@ -31,13 +32,33 @@ export const Modal = ({
     };
 
     if (isOpen) {
+      previousActiveElementRef.current = document.activeElement;
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+
+      // Shift focus into modal
+      setTimeout(() => {
+        if (!modalRef.current) return;
+        const firstInput = modalRef.current.querySelector('input:not([disabled]), textarea:not([disabled])');
+        if (firstInput) {
+          firstInput.focus();
+        } else {
+          const focusable = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable && focusable.length > 0) {
+            focusable[0].focus();
+          }
+        }
+      }, 50);
     }
 
     return () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
+      if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
+        previousActiveElementRef.current.focus();
+      }
     };
   }, [isOpen, onClose]);
 

@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node tests/test_tools.mjs && node tests/test_timeout_behavior.mjs",
+    "test:integration": "node tests/test_model_consistency.mjs && node tests/test_execution_engine.mjs && node tests/test_api_execution.mjs && node tests/test_execution_history.mjs && node tests/test_e2e_journey.mjs",
+    "test:all": "npm test && npm run test:integration"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

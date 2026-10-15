@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
-import { Login } from './pages/Auth/Login';
-import { Register } from './pages/Auth/Register';
 import { Navbar } from './components/layout/Navbar';
 import { PageContainer } from './components/layout/PageContainer';
 import { Button } from './components/ui/Button';
@@ -13,11 +11,15 @@ import { Badge } from './components/ui/Badge';
 import { Modal } from './components/ui/Modal';
 import { Alert } from './components/ui/Alert';
 import { checkHealth, agentApi, executionApi } from './services/apiClient';
-import { LandingPage } from './pages/Landing/LandingPage';
-import { AgentList } from './pages/Agents/AgentList';
-import { AgentPlayground } from './pages/AgentPlayground/AgentPlayground';
-import { ExecutionsList } from './pages/Executions/ExecutionsList';
-import { ExecutionDetail } from './pages/Executions/ExecutionDetail';
+
+// Lazy-loaded route components for optimized initial bundle delivery
+const Login = lazy(() => import('./pages/Auth/Login').then(m => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/Auth/Register').then(m => ({ default: m.Register })));
+const LandingPage = lazy(() => import('./pages/Landing/LandingPage').then(m => ({ default: m.LandingPage })));
+const AgentList = lazy(() => import('./pages/Agents/AgentList').then(m => ({ default: m.AgentList })));
+const AgentPlayground = lazy(() => import('./pages/AgentPlayground/AgentPlayground').then(m => ({ default: m.AgentPlayground })));
+const ExecutionsList = lazy(() => import('./pages/Executions/ExecutionsList').then(m => ({ default: m.ExecutionsList })));
+const ExecutionDetail = lazy(() => import('./pages/Executions/ExecutionDetail').then(m => ({ default: m.ExecutionDetail })));
 import { 
   Activity, 
   Layers, 
@@ -519,64 +521,81 @@ function ScrollToTop() {
   return null;
 }
 
+function PageLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 rounded-sm bg-ink flex items-center justify-center text-fable-chartreuse font-mono font-bold text-base shadow-editorial animate-pulse">
+          F
+        </div>
+        <p className="text-xs font-mono uppercase tracking-wider text-ink-secondary">
+          Loading Workshop...
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<LandingPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardView />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agents"
-            element={
-              <ProtectedRoute>
-                <AgentList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/executions"
-            element={
-              <ProtectedRoute>
-                <ExecutionsList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/executions/:id"
-            element={
-              <ProtectedRoute>
-                <ExecutionDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/playground"
-            element={
-              <ProtectedRoute>
-                <AgentPlayground />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agents/:agentId/playground"
-            element={
-              <ProtectedRoute>
-                <AgentPlayground />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agents"
+              element={
+                <ProtectedRoute>
+                  <AgentList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/executions"
+              element={
+                <ProtectedRoute>
+                  <ExecutionsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/executions/:id"
+              element={
+                <ProtectedRoute>
+                  <ExecutionDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/playground"
+              element={
+                <ProtectedRoute>
+                  <AgentPlayground />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agents/:agentId/playground"
+              element={
+                <ProtectedRoute>
+                  <AgentPlayground />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );
