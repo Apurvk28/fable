@@ -34,7 +34,7 @@ export function Cta69({
   return (
     <section
       className={cn(
-        "relative overflow-hidden bg-paper border-t border-hairline py-16 md:py-24 w-full select-none",
+        "relative overflow-hidden bg-paper py-16 md:py-24 w-full select-none",
         className
       )}
     >

@@ -143,7 +143,7 @@ export default function ScrollAnimation() {
   return (
     <div
       ref={containerRef}
-      className="relative bg-paper text-ink border-t border-b border-hairline py-24 selection:bg-fable-chartreuse selection:text-ink font-sans transition-colors duration-300"
+      className="relative bg-paper text-ink border-t border-hairline py-24 selection:bg-fable-chartreuse selection:text-ink font-sans transition-colors duration-300"
       style={{
         backgroundColor: "#F9F8F5",
         color: "#121316",

@@ -2,7 +2,7 @@ import React from 'react';
 
 export const LandingFooter = () => {
   return (
-    <footer className="bg-paper border-t border-hairline py-16">
+    <footer className="bg-paper py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
         {/* Brand & Technical Architecture Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 font-sans text-xs">
