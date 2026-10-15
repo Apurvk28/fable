@@ -16,10 +16,13 @@ import {
 } from 'lucide-react';
 
 export const HeroSection = ({ isAuthenticated = false }) => {
-  const fullText = 'Automate It.';
+  const phrases = ['Automate It.', 'Optimize It.', 'Scale It.'];
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState(85);
+
+  const currentPhrase = phrases[phraseIndex];
 
   useEffect(() => {
     // Check if user prefers reduced motion
@@ -29,33 +32,34 @@ export const HeroSection = ({ isAuthenticated = false }) => {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
-      setDisplayText(fullText);
+      setDisplayText(phrases[0]);
       return;
     }
 
     let timer;
-    if (!isDeleting && displayText === fullText) {
+    if (!isDeleting && displayText === currentPhrase) {
       // Pause on completed text for 2 seconds (1.4x faster cycle)
       timer = setTimeout(() => {
         setIsDeleting(true);
         setTypingSpeed(42);
       }, 2000);
     } else if (isDeleting && displayText === '') {
-      // Pause briefly when empty before re-typing
+      // Pause briefly when empty before switching to next phrase
       setIsDeleting(false);
+      setPhraseIndex((prev) => (prev + 1) % phrases.length);
       setTypingSpeed(85);
       timer = setTimeout(() => {}, 280);
     } else {
       timer = setTimeout(() => {
         const nextText = isDeleting
-          ? fullText.substring(0, displayText.length - 1)
-          : fullText.substring(0, displayText.length + 1);
+          ? currentPhrase.substring(0, displayText.length - 1)
+          : currentPhrase.substring(0, displayText.length + 1);
         setDisplayText(nextText);
       }, typingSpeed);
     }
 
     return () => clearTimeout(timer);
-  }, [displayText, isDeleting, typingSpeed, fullText]);
+  }, [displayText, isDeleting, typingSpeed, currentPhrase, phraseIndex]);
 
   return (
     <section className="relative pt-12 pb-20 border-b border-hairline overflow-hidden">
@@ -79,7 +83,7 @@ export const HeroSection = ({ isAuthenticated = false }) => {
         <div className="max-w-4xl space-y-6">
           <h1
             className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ink leading-[1.08]"
-            aria-label="Imagine It. Automate It."
+            aria-label={`Imagine It. ${currentPhrase}`}
           >
             Imagine It. <br />
             <span className="italic font-normal inline-flex items-baseline">
