@@ -45,11 +45,10 @@ export const LandingPage = () => {
 
         {/* Section H: Call to Action Marquee (Cta69) */}
         <Cta69
-          badge={{ label: "Last word" }}
           heading="Let's make something worth keeping."
-          button={{ label: "Start the conversation", href: "https://beste.co" }}
+          button={{ label: "Get Started", href: isAuthenticated ? "/dashboard" : "/login" }}
           labels={{
-            marqueePhrase: "Worth keeping",
+            marqueePhrase: "Imagine It. Automate It.",
             note: "No decks, no detours: one room, your problem, and a studio that ships.",
             footnote: "Booking two new partners for the autumn cycle.",
           }}

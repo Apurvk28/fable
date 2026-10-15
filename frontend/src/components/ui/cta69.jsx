@@ -5,14 +5,13 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 export const cta69Demo = {
-  badge: { label: "Last word" },
   heading: "Let's make something worth keeping.",
   button: {
-    label: "Start the conversation",
-    href: "https://beste.co",
+    label: "Get Started",
+    href: "/login",
   },
   labels: {
-    marqueePhrase: "Worth keeping",
+    marqueePhrase: "Imagine It. Automate It.",
     note: "No decks, no detours: one room, your problem, and a studio that ships.",
     footnote: "Booking two new partners for the autumn cycle.",
   },
