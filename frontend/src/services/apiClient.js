@@ -152,5 +152,34 @@ export const agentApi = {
       body: JSON.stringify(data),
     }),
   getSupportedModels: () => apiClient('/api/v1/agents/models'),
+  runTask: (id, input) =>
+    apiClient(`/api/v1/agents/${id}/run`, {
+      method: 'POST',
+      body: JSON.stringify({ input }),
+    }),
+  chat: (id, message, history = []) =>
+    apiClient(`/api/v1/agents/${id}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message, history }),
+    }),
+  getRecentExecutions: (id) => apiClient(`/api/v1/agents/${id}/executions`),
 };
+
+// Phase 6 & 7: Execution API Methods
+export const executionApi = {
+  getExecutions: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', params.page);
+    if (params.limit) query.set('limit', params.limit);
+    if (params.agentId && params.agentId !== 'all') query.set('agentId', params.agentId);
+    if (params.status && params.status !== 'all') query.set('status', params.status);
+    if (params.mode && params.mode !== 'all') query.set('mode', params.mode);
+    if (params.sort) query.set('sort', params.sort);
+    if (params.q && params.q.trim()) query.set('q', params.q.trim());
+    const queryString = query.toString();
+    return apiClient(`/api/v1/executions${queryString ? `?${queryString}` : ''}`);
+  },
+  getExecution: (id) => apiClient(`/api/v1/executions/${id}`),
+};
+
 

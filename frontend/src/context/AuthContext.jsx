@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      sessionStorage.setItem('fable_logged_out', 'true');
       await authApi.logout();
     } catch (err) {
       console.error('Logout request failed:', err);

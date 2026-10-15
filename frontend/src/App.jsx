@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { Login } from './pages/Auth/Login';
@@ -12,8 +12,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from './components/ui/Badge';
 import { Modal } from './components/ui/Modal';
 import { Alert } from './components/ui/Alert';
-import { checkHealth, agentApi } from './services/apiClient';
+import { checkHealth, agentApi, executionApi } from './services/apiClient';
+import { LandingPage } from './pages/Landing/LandingPage';
 import { AgentList } from './pages/Agents/AgentList';
+import { AgentPlayground } from './pages/AgentPlayground/AgentPlayground';
+import { ExecutionsList } from './pages/Executions/ExecutionsList';
+import { ExecutionDetail } from './pages/Executions/ExecutionDetail';
 import { 
   Activity, 
   Layers, 
@@ -26,7 +30,10 @@ import {
   UserCheck,
   Bot,
   ArrowRight,
-  Plus
+  Plus,
+  Clock,
+  Wrench,
+  AlertCircle
 } from 'lucide-react';
 
 function DashboardView() {
@@ -37,6 +44,8 @@ function DashboardView() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [agentCount, setAgentCount] = useState(0);
   const [recentAgents, setRecentAgents] = useState([]);
+  const [executionCount, setExecutionCount] = useState(0);
+  const [recentExecutions, setRecentExecutions] = useState([]);
 
   // UI Interactive State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,9 +80,20 @@ function DashboardView() {
     }
   };
 
+  const fetchExecutionsSummary = async () => {
+    try {
+      const res = await executionApi.getExecutions({ limit: 3 });
+      setExecutionCount(res.pagination?.totalCount || 0);
+      setRecentExecutions(res.executions || []);
+    } catch (err) {
+      console.warn('Failed to fetch executions summary:', err);
+    }
+  };
+
   useEffect(() => {
     fetchHealth();
     fetchAgentsSummary();
+    fetchExecutionsSummary();
   }, []);
 
   const handleTestInput = (e) => {
@@ -209,6 +229,87 @@ function DashboardView() {
                         {ag.tools?.length || 0} tools enabled
                       </div>
                     </div>
+                  ))}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </section>
+
+        {/* Phase 7: Execution History & Observability Overview */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-ink-secondary" />
+              <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
+                Execution Observability (Phase 7)
+              </h2>
+            </div>
+            <Link to="/executions">
+              <Button variant="ghost" size="sm" icon={ArrowRight} className="text-xs font-mono">
+                View Full History
+              </Button>
+            </Link>
+          </div>
+
+          <Card className="bg-white">
+            <CardHeader className="bg-paper-muted">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-sm bg-ink text-white flex items-center justify-center font-bold">
+                    <Clock className="w-5 h-5 text-fable-chartreuse" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Agent Run History & Traces</CardTitle>
+                    <CardDescription>
+                      {executionCount === 0
+                        ? 'No executions recorded yet. Run a task in the playground to begin capturing telemetry.'
+                        : `${executionCount} total ${executionCount === 1 ? 'execution' : 'executions'} captured with immutable snapshots and tool traces.`}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link to="/executions">
+                    <Button variant="outline" size="sm">
+                      Inspect Runs
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardHeader>
+
+            {recentExecutions.length > 0 && (
+              <CardContent className="pt-4">
+                <div className="text-xs font-mono text-ink-muted uppercase tracking-wider mb-2">
+                  Recent Runs
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {recentExecutions.map((run) => (
+                    <Link
+                      key={run.id}
+                      to={`/executions/${run.id}`}
+                      className="p-3 bg-paper hover:bg-white hover:border-ink/40 rounded-sm border border-hairline flex flex-col justify-between transition-colors group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="font-semibold text-ink group-hover:text-ink-secondary truncate">
+                            {run.agentSnapshot?.name || 'Agent Run'}
+                          </span>
+                          {run.status === 'completed' ? (
+                            <Badge variant="success" size="sm" className="text-[9px]">Success</Badge>
+                          ) : (
+                            <Badge variant="error" size="sm" className="text-[9px]">Failed</Badge>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-ink-secondary truncate mt-1">
+                          {run.input}
+                        </p>
+                      </div>
+                      <div className="mt-2.5 pt-1.5 border-t border-hairline/60 flex items-center justify-between text-[9px] font-mono text-ink-muted">
+                        <span>{run.durationMs}ms</span>
+                        <span>{new Date(run.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </CardContent>
@@ -408,15 +509,27 @@ function DashboardView() {
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/" element={<LandingPage />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardView />
@@ -428,6 +541,38 @@ export function App() {
             element={
               <ProtectedRoute>
                 <AgentList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/executions"
+            element={
+              <ProtectedRoute>
+                <ExecutionsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/executions/:id"
+            element={
+              <ProtectedRoute>
+                <ExecutionDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/playground"
+            element={
+              <ProtectedRoute>
+                <AgentPlayground />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agents/:agentId/playground"
+            element={
+              <ProtectedRoute>
+                <AgentPlayground />
               </ProtectedRoute>
             }
           />

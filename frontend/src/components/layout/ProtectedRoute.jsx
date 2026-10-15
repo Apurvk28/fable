@@ -21,7 +21,11 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    // Redirect to login page while saving the intended destination
+    if (sessionStorage.getItem('fable_logged_out')) {
+      sessionStorage.removeItem('fable_logged_out');
+      return <Navigate to="/" replace />;
+    }
+    // Redirect unauthenticated visitor to login page while saving the intended destination
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

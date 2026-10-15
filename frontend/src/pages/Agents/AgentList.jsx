@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { agentApi } from '../../services/apiClient';
 import { Navbar } from '../../components/layout/Navbar';
 import { PageContainer } from '../../components/layout/PageContainer';
@@ -27,7 +28,8 @@ import {
   FileText,
   Calendar,
   Sparkles,
-  Inbox
+  Inbox,
+  Play
 } from 'lucide-react';
 
 const TOOL_ICONS = {
@@ -403,15 +405,27 @@ export const AgentList = () => {
                   </CardContent>
 
                   <CardFooter className="border-t border-hairline/60 pt-3 flex items-center justify-between gap-1 bg-paper/40">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={Eye}
-                      onClick={() => setInspectingAgent(agent)}
-                      title="Inspect Agent Configuration"
-                    >
-                      Inspect
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Link to={`/agents/${agent.id}/playground`}>
+                        <Button
+                          variant="accent"
+                          size="sm"
+                          icon={Play}
+                          title="Run Agent in Playground"
+                        >
+                          Run
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={Eye}
+                        onClick={() => setInspectingAgent(agent)}
+                        title="Inspect Agent Configuration"
+                      >
+                        Inspect
+                      </Button>
+                    </div>
 
                     <div className="flex items-center gap-1">
                       <Button

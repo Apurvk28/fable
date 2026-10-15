@@ -18,7 +18,7 @@ export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,12 +43,19 @@ export const Login = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-2 mb-6">
-        <div className="w-10 h-10 rounded-sm bg-ink flex items-center justify-center text-fable-chartreuse font-mono font-bold text-xl shadow-editorial mx-auto">
-          F
-        </div>
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-ink">
-          Sign In to Fable
-        </h1>
+        <Link
+          to="/"
+          onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+          className="inline-block group focus:outline-none cursor-pointer"
+          title="Go to Fable Home"
+        >
+          <div className="w-10 h-10 rounded-sm bg-ink flex items-center justify-center text-fable-chartreuse font-mono font-bold text-xl shadow-editorial mx-auto transition-transform group-hover:scale-105">
+            F
+          </div>
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mt-2 group-hover:text-ink-secondary transition-colors">
+            Sign In to Fable
+          </h1>
+        </Link>
         <p className="text-xs font-mono uppercase tracking-widest text-ink-secondary">
           Developer Agent Platform
         </p>

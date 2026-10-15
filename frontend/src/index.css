@@ -5,6 +5,47 @@
 @layer base {
   :root {
     color-scheme: light;
+    --start: 0;
+    --end: 360;
+    --lightness: 65%;
+    --base-chroma: 0.3;
+    --font-size-min: 14;
+    --font-size-max: 20;
+    --font-ratio-min: 1.1;
+    --font-ratio-max: 1.33;
+    --font-width-min: 375;
+    --font-width-max: 1500;
+  }
+
+  @keyframes change {
+    to {
+      --hue: var(--end);
+    }
+  }
+
+  @keyframes chroma-on {
+    to {
+      --chroma: 0.3;
+    }
+  }
+
+  @keyframes chroma-off {
+    to {
+      --chroma: 0;
+    }
+  }
+
+  @keyframes brighten {
+    0% {
+      opacity: var(--start-opacity, 0.2);
+    }
+    50% {
+      opacity: 1;
+      filter: brightness(var(--brightness, 1.2));
+    }
+    100% {
+      opacity: var(--end-opacity, 0.2);
+    }
   }
 
   body {

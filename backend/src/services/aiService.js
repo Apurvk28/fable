@@ -372,3 +372,56 @@ JSON Schema format:
     throw mapProviderError(error);
   }
 };
+
+/**
+ * Execute chat completion with Groq AI model supporting function/tool calling
+ * PRD: RUN-02, RUN-03, AI-01, AI-02, TOOL-08
+ */
+export const executeModelCompletion = async ({
+  model,
+  messages,
+  tools = [],
+  temperature = 0.7,
+  maxTokens = 1024,
+  signal = null,
+}) => {
+  const modelToUse = model || DEFAULT_MODEL_ID;
+  await assertModelAvailable(modelToUse);
+
+  const groq = getGroqClient();
+
+  const requestOptions = {
+    model: modelToUse,
+    messages,
+    temperature: typeof temperature === 'number' ? Math.max(0, Math.min(2, temperature)) : 0.7,
+    max_tokens: typeof maxTokens === 'number' ? Math.max(1, Math.min(4096, maxTokens)) : 1024,
+  };
+
+  // Only pass tools if array is non-empty
+  if (Array.isArray(tools) && tools.length > 0) {
+    requestOptions.tools = tools;
+    requestOptions.tool_choice = 'auto';
+  }
+
+  try {
+    const response = await groq.chat.completions.create(
+      requestOptions,
+      signal ? { signal } : undefined
+    );
+
+    const choice = response.choices?.[0];
+    if (!choice || !choice.message) {
+      throw new AiServiceError('Provider returned empty completion choice.', 502, 'EMPTY_COMPLETION_CHOICE');
+    }
+
+    return {
+      message: choice.message,
+      finishReason: choice.finish_reason,
+      usage: response.usage || null,
+      modelUsed: modelToUse,
+    };
+  } catch (error) {
+    throw mapProviderError(error);
+  }
+};
+

@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { config } from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
+import executionRoutes from './routes/executionRoutes.js';
 import { injectCsrfCookie } from './middleware/csrfMiddleware.js';
 
 const app = express();
@@ -70,6 +71,7 @@ app.get('/health', (req, res) => {
 // 5. API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/agents', agentRoutes);
+app.use('/api/v1/executions', executionRoutes);
 
 // 6. 404 Route Not Found Handler
 app.use((req, res) => {

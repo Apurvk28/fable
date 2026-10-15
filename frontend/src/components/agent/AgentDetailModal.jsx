@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -12,7 +13,8 @@ import {
   Edit3,
   Calendar,
   Calculator,
-  FileText
+  FileText,
+  Play
 } from 'lucide-react';
 
 const TOOL_ICONS = {
@@ -45,6 +47,15 @@ export const AgentDetailModal = ({
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
+            <Link to={`/agents/${agent.id}/playground`} onClick={onClose}>
+              <Button
+                variant="accent"
+                size="sm"
+                icon={Play}
+              >
+                Run in Playground
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="sm"
