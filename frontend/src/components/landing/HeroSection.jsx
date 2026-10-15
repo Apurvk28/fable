@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -16,6 +16,47 @@ import {
 } from 'lucide-react';
 
 export const HeroSection = ({ isAuthenticated = false }) => {
+  const fullText = 'Automate It.';
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(85);
+
+  useEffect(() => {
+    // Check if user prefers reduced motion
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      setDisplayText(fullText);
+      return;
+    }
+
+    let timer;
+    if (!isDeleting && displayText === fullText) {
+      // Pause on completed text for 2 seconds (1.4x faster cycle)
+      timer = setTimeout(() => {
+        setIsDeleting(true);
+        setTypingSpeed(42);
+      }, 2000);
+    } else if (isDeleting && displayText === '') {
+      // Pause briefly when empty before re-typing
+      setIsDeleting(false);
+      setTypingSpeed(85);
+      timer = setTimeout(() => {}, 280);
+    } else {
+      timer = setTimeout(() => {
+        const nextText = isDeleting
+          ? fullText.substring(0, displayText.length - 1)
+          : fullText.substring(0, displayText.length + 1);
+        setDisplayText(nextText);
+      }, typingSpeed);
+    }
+
+    return () => clearTimeout(timer);
+  }, [displayText, isDeleting, typingSpeed, fullText]);
+
   return (
     <section className="relative pt-12 pb-20 border-b border-hairline overflow-hidden">
       {/* Background Subtle Grid Texture */}
@@ -36,9 +77,18 @@ export const HeroSection = ({ isAuthenticated = false }) => {
 
         {/* Hero Typography & Core Value Proposition */}
         <div className="max-w-4xl space-y-6">
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ink leading-[1.08]">
+          <h1
+            className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ink leading-[1.08]"
+            aria-label="Imagine It. Automate It."
+          >
             Imagine It. <br />
-            <span className="italic font-normal">Automate It.</span>
+            <span className="italic font-normal inline-flex items-baseline">
+              <span>{displayText || '\u00A0'}</span>
+              <span
+                className="inline-block w-[3px] sm:w-[4px] h-[0.75em] bg-ink ml-1.5 align-baseline animate-pulse"
+                aria-hidden="true"
+              />
+            </span>
           </h1>
 
           <p className="text-base sm:text-lg text-ink-secondary max-w-2xl font-sans leading-relaxed">
