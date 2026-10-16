@@ -62,7 +62,7 @@ export const HeroSection = ({ isAuthenticated = false }) => {
   }, [displayText, isDeleting, typingSpeed, currentPhrase, phraseIndex]);
 
   return (
-    <section className="relative pt-12 pb-20 border-b border-hairline overflow-hidden">
+    <section className="relative pt-12 pb-20 border-b border-hairline bg-paper overflow-hidden">
       {/* Background Subtle Grid Texture */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#12131608_1px,transparent_1px),linear-gradient(to_bottom,#12131608_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 

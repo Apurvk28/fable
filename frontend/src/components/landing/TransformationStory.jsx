@@ -50,7 +50,7 @@ export const TransformationStory = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 border-b border-hairline bg-white">
+    <section id="how-it-works" className="py-20 border-b border-hairline bg-paper">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
         {/* Section Header */}
         <div className="max-w-2xl space-y-3">

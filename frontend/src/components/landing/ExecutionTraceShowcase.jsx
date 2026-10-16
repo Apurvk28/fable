@@ -14,7 +14,7 @@ import {
 
 export const ExecutionTraceShowcase = () => {
   return (
-    <section className="py-20 border-b border-hairline bg-white">
+    <section className="py-20 border-b border-hairline bg-paper">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
