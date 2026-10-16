@@ -5,11 +5,8 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { Navbar } from './components/layout/Navbar';
 import { PageContainer } from './components/layout/PageContainer';
 import { Button } from './components/ui/Button';
-import { Input, Textarea } from './components/ui/Input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './components/ui/Card';
 import { Badge } from './components/ui/Badge';
-import { Modal } from './components/ui/Modal';
-import { Alert } from './components/ui/Alert';
 import { checkHealth, agentApi, executionApi } from './services/apiClient';
 
 // Lazy-loaded route components for optimized initial bundle delivery
@@ -22,24 +19,17 @@ const ExecutionsList = lazy(() => import('./pages/Executions/ExecutionsList').th
 const ExecutionDetail = lazy(() => import('./pages/Executions/ExecutionDetail').then(m => ({ default: m.ExecutionDetail })));
 import { 
   Activity, 
-  Layers, 
   CheckCircle2, 
   RefreshCw, 
   ShieldCheck, 
-  Lock, 
-  Key, 
-  Database,
-  UserCheck,
-  Bot,
-  ArrowRight,
-  Plus,
-  Clock,
-  Wrench,
-  AlertCircle
+  Bot, 
+  ArrowRight, 
+  Plus, 
+  Clock 
 } from 'lucide-react';
 
 function DashboardView() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [healthData, setHealthData] = useState(null);
   const [healthStatus, setHealthStatus] = useState('loading');
   const [healthLatency, setHealthLatency] = useState(null);
@@ -48,12 +38,6 @@ function DashboardView() {
   const [recentAgents, setRecentAgents] = useState([]);
   const [executionCount, setExecutionCount] = useState(0);
   const [recentExecutions, setRecentExecutions] = useState([]);
-
-  // UI Interactive State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [testInput, setTestInput] = useState('');
-  const [inputError, setInputError] = useState('');
-  const [buttonLoading, setButtonLoading] = useState(false);
 
   const fetchHealth = async () => {
     setIsRefreshing(true);
@@ -98,32 +82,17 @@ function DashboardView() {
     fetchExecutionsSummary();
   }, []);
 
-  const handleTestInput = (e) => {
-    const val = e.target.value;
-    setTestInput(val);
-    if (val.length > 0 && val.length < 3) {
-      setInputError('Input must be at least 3 characters');
-    } else {
-      setInputError('');
-    }
-  };
-
-  const handleSimulateLoad = () => {
-    setButtonLoading(true);
-    setTimeout(() => setButtonLoading(false), 1500);
-  };
-
   return (
     <div className="min-h-screen bg-paper flex flex-col font-sans">
       <Navbar backendStatus={{ status: healthStatus }} />
 
       <PageContainer className="flex-1 space-y-10">
-        {/* Phase 2 User Isolation & Orientation Header */}
+        {/* Authenticated User Orientation Header */}
         <section className="border-b border-hairline pb-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Badge variant="success" size="md" dot={true}>Phase 2: Authenticated</Badge>
-              <span className="text-xs font-mono text-ink-secondary">Session Active</span>
+              <Badge variant="success" size="md" dot={true}>Session Active</Badge>
+              <span className="text-xs font-mono text-ink-secondary">Authenticated Workspace</span>
             </div>
             <div className="flex items-center gap-2">
               <Button 
@@ -144,8 +113,8 @@ function DashboardView() {
                 Welcome back, {user?.name}
               </h1>
               <p className="text-sm text-ink-secondary max-w-2xl leading-relaxed mt-1">
-                Your authenticated session is active and guarded by cryptographically signed HttpOnly cookies. 
-                All data queries are isolated to your account ID.
+                Your workspace is active and guarded by cryptographically signed HttpOnly sessions. 
+                All agent configurations and execution history are strictly isolated to your account.
               </p>
             </div>
           </div>
@@ -161,7 +130,7 @@ function DashboardView() {
               <span className="text-ink font-semibold truncate block">{user?.email}</span>
             </div>
             <div>
-              <span className="text-ink-muted text-[10px] uppercase block">Cookie Security</span>
+              <span className="text-ink-muted text-[10px] uppercase block">Session Security</span>
               <span className="text-status-success font-semibold flex items-center gap-1 mt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>HttpOnly &middot; SameSite=Lax</span>
@@ -170,13 +139,13 @@ function DashboardView() {
           </div>
         </section>
 
-        {/* Phase 3 Agent Workshop Overview & Quick Actions */}
+        {/* Agent Workshop Overview & Quick Actions */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-ink-secondary" />
               <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
-                Agent Workshop (Phase 3)
+                Agent Workshop
               </h2>
             </div>
             <Link to="/agents">
@@ -238,13 +207,13 @@ function DashboardView() {
           </Card>
         </section>
 
-        {/* Phase 7: Execution History & Observability Overview */}
+        {/* Execution History & Observability Overview */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-ink-secondary" />
               <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
-                Execution Observability (Phase 7)
+                Execution Observability
               </h2>
             </div>
             <Link to="/executions">
@@ -262,7 +231,7 @@ function DashboardView() {
                     <Clock className="w-5 h-5 text-fable-chartreuse" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Agent Run History & Traces</CardTitle>
+                    <CardTitle className="text-base">Agent Run History &amp; Traces</CardTitle>
                     <CardDescription>
                       {executionCount === 0
                         ? 'No executions recorded yet. Run a task in the playground to begin capturing telemetry.'
@@ -319,12 +288,12 @@ function DashboardView() {
           </Card>
         </section>
 
-        {/* 1. Live Backend Connectivity Card */}
+        {/* Platform & Service Connectivity Status */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-ink-secondary" />
             <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
-              Live Backend & Database Status (:5001 &rarr; MongoDB)
+              Platform &amp; Service Status
             </h2>
           </div>
 
@@ -336,8 +305,8 @@ function DashboardView() {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Express Backend & MongoDB Online</CardTitle>
-                    <CardDescription>Responded to GET /health with credentials over cross-origin HTTP</CardDescription>
+                    <CardTitle className="text-base">Backend API &amp; Database Operational</CardTitle>
+                    <CardDescription>Connected to Express API service and MongoDB storage</CardDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -365,146 +334,9 @@ function DashboardView() {
           ) : (
             <Card className="p-6 text-center text-ink-secondary text-sm">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-ink-muted" />
-              Connecting to http://localhost:5001/health...
+              Connecting to backend service...
             </Card>
           )}
-        </section>
-
-        {/* 2. Reusable UI Primitives Showcase */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-ink-secondary" />
-            <h2 className="text-xs font-mono uppercase tracking-wider text-ink-secondary font-semibold">
-              Design System Tokens & Primitives
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Buttons Showcase */}
-            <Card>
-              <CardHeader>
-                <div>
-                  <CardTitle>Buttons & Variants</CardTitle>
-                  <CardDescription>Primary, secondary, outline, danger, and accent tokens</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2.5">
-                  <Button variant="primary">Primary</Button>
-                  <Button variant="secondary">Secondary</Button>
-                  <Button variant="outline">Outline</Button>
-                  <Button variant="accent">Accent</Button>
-                  <Button variant="danger">Danger</Button>
-                </div>
-
-                <div className="pt-2 border-t border-hairline/80 flex items-center gap-3">
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    isLoading={buttonLoading}
-                    onClick={handleSimulateLoad}
-                  >
-                    {buttonLoading ? 'Loading...' : 'Click to Test Loading'}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
-                    Open Test Modal
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Inputs Showcase */}
-            <Card>
-              <CardHeader>
-                <div>
-                  <CardTitle>Accessible Form Inputs</CardTitle>
-                  <CardDescription>Labeling, validation messages, and error states</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  label="Sample Input"
-                  placeholder="Type to test validation..."
-                  value={testInput}
-                  onChange={handleTestInput}
-                  error={inputError}
-                  helperText="Validates minimum length live"
-                />
-                <Textarea
-                  label="System Instructions Preview"
-                  rows={2}
-                  placeholder="Agent instructions..."
-                  helperText="Prepares layout for Phase 3 configuration forms"
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Modal Dialog Test */}
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="Phase 2 Dialog Test"
-          description="Accessible dialog primitive with backdrop and Escape key listener."
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-ink-secondary leading-relaxed">
-              This modal primitive traps focus, disables body scrolling while active, 
-              listens for the <kbd className="px-1.5 py-0.5 bg-paper-muted border border-hairline font-mono text-xs rounded">Esc</kbd> key, 
-              and adheres to WCAG accessible dialog requirements.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="primary" size="sm" onClick={() => setIsModalOpen(false)}>
-                Confirm & Close
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
-        {/* Phase 2 Security & Completion Status Banner */}
-        <section className="p-6 bg-paper-muted border border-hairline rounded-sm space-y-4">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-ink" />
-            <h3 className="font-serif text-lg text-ink font-medium">Phase 2 Verification Checklist</h3>
-          </div>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-ink-secondary">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>MongoDB Mongoose schema with email normalization</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>bcrypt password hashing (12 salt rounds, never plaintext)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>JWT authentication via secure HttpOnly, SameSite=Lax cookies</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>Zero JWT tokens stored in localStorage</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>Authentication rate limiting (20 attempts / 15m window)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>User identity established solely from verified server session</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>Frontend AuthContext with protected route redirection</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
-              <span>Clean logout and cookie invalidation verified</span>
-            </li>
-          </ul>
         </section>
       </PageContainer>
     </div>

@@ -166,7 +166,6 @@ export const AgentList = () => {
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="accent" size="sm">Phase 3</Badge>
               <span className="text-xs font-mono uppercase tracking-widest text-ink-muted">
                 Workshop &middot; {totalCount} {totalCount === 1 ? 'Agent' : 'Agents'}
               </span>

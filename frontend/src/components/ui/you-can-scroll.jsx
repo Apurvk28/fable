@@ -151,8 +151,6 @@ export default function ScrollAnimation() {
     >
       {/* Intro Header */}
       <header className="min-h-[50vh] flex flex-col items-center justify-center text-center px-4 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-white border border-hairline font-mono text-[10px] uppercase tracking-wider text-ink-secondary shadow-editorial">
-        </div>
         <h1
           className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-ink tracking-tight leading-[1.05]"
         >
@@ -170,7 +168,7 @@ export default function ScrollAnimation() {
           <div className="md:sticky md:top-1/2 md:-translate-y-1/2 select-none z-10">
             <h2 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal text-ink tracking-tight whitespace-nowrap">
               <span aria-hidden="true">you can&nbsp;</span>
-              <span className="sr-only">you can ship things.</span>
+              <span className="sr-only">you can imagine, create, and automate.</span>
             </h2>
           </div>
 
@@ -208,12 +206,12 @@ export default function ScrollAnimation() {
         </section>
       </main>
 
-      {/* Author Credit Badge */}
-      <footer className="text-center font-mono text-[11px] text-ink-muted pt-8 pb-4">
+      {/* Workshop Navigation Prompt */}
+      <div className="text-center font-mono text-[11px] text-ink-muted pt-8 pb-4">
         <span className="inline-block px-3 py-1 bg-white border border-hairline rounded-sm shadow-editorial">
           Ready to build? Configure your first agent in the workshop.
         </span>
-      </footer>
+      </div>
     </div>
   );
 }

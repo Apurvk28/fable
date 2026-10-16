@@ -68,7 +68,7 @@ export const Login = () => {
               <CardTitle className="text-base">Account Credentials</CardTitle>
               <CardDescription>Enter your email and password to access your agents</CardDescription>
             </div>
-            <Badge variant="outline" size="sm">Phase 2</Badge>
+            <Badge variant="outline" size="sm">Secure</Badge>
           </CardHeader>
 
           <form onSubmit={handleSubmit}>

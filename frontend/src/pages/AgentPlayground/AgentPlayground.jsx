@@ -280,7 +280,7 @@ export const AgentPlayground = () => {
               <div className="flex items-center gap-2">
                 <h1 className="font-serif text-2xl font-bold text-ink">Agent Playground</h1>
                 <Badge variant="accent" size="sm" className="font-mono text-[10px]">
-                  Phase 6 Sandbox
+                  Sandbox
                 </Badge>
               </div>
               <p className="text-xs text-ink-secondary mt-0.5">
