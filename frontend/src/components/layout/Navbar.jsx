@@ -27,7 +27,7 @@ export const Navbar = ({ backendStatus }) => {
 
   return (
     <header className="border-b border-hairline bg-paper/90 backdrop-blur-md sticky top-0 z-30">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand & Left Nav */}
         <div className="flex items-center gap-6">
           <Link

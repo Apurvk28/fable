@@ -9,6 +9,7 @@ import { InteractiveSandboxDemo } from '../../components/landing/InteractiveSand
 import { ExecutionTraceShowcase } from '../../components/landing/ExecutionTraceShowcase';
 import ScrollAnimation from '../../components/ui/you-can-scroll';
 import { Cta69 } from '@/components/ui/cta69';
+import BlueprintInkReveal from '@/components/ui/blueprint-ink-reveal';
 import { LandingFooter } from '../../components/landing/LandingFooter';
 
 export const LandingPage = () => {
@@ -53,6 +54,9 @@ export const LandingPage = () => {
             footnote: "From your first idea to your first automated workflow.",
           }}
         />
+
+        {/* Section I: Blueprint Drafting Ink Reveal */}
+        <BlueprintInkReveal wordmark="FABLE" inkRadius={160} showCoordinates={true} />
       </main>
 
       {/* Footer */}
