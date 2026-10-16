@@ -15,6 +15,8 @@ import {
   Lock
 } from 'lucide-react';
 
+import { Loader } from '../ui/3d-box-loader-animation';
+
 export const HeroSection = ({ isAuthenticated = false }) => {
   const phrases = ['Automate It.', 'Optimize It.', 'Scale It.'];
   const [phraseIndex, setPhraseIndex] = useState(0);
@@ -79,53 +81,62 @@ export const HeroSection = ({ isAuthenticated = false }) => {
           </div>
         </div>
 
-        {/* Hero Typography & Core Value Proposition */}
-        <div className="max-w-4xl space-y-6">
-          <h1
-            className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ink leading-[1.08]"
-            aria-label={`Imagine It. ${currentPhrase}`}
-          >
-            Imagine It. <br />
-            <span className="italic font-normal inline-flex items-baseline">
-              <span>{displayText || '\u00A0'}</span>
-              <span
-                className="inline-block w-[3px] sm:w-[4px] h-[0.75em] bg-ink ml-1.5 align-baseline animate-pulse"
-                aria-hidden="true"
-              />
-            </span>
-          </h1>
+        {/* Hero Typography, Value Proposition & 3D Interactive Animation */}
+        <div className="grid lg:grid-cols-[1fr_auto] items-center gap-8 lg:gap-10">
+          <div className="max-w-2xl space-y-6">
+            <h1
+              className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ink leading-[1.08]"
+              aria-label={`Imagine It. ${currentPhrase}`}
+            >
+              Imagine It. <br />
+              <span className="italic font-normal inline-flex items-baseline">
+                <span>{displayText || '\u00A0'}</span>
+                <span
+                  className="inline-block w-[3px] sm:w-[4px] h-[0.75em] bg-ink ml-1.5 align-baseline animate-pulse"
+                  aria-hidden="true"
+                />
+              </span>
+            </h1>
 
-          <p className="text-base sm:text-lg text-ink-secondary max-w-2xl font-sans leading-relaxed">
-            Describe what you want your AI agent to achieve. Fable configures its instructions, sandboxes its tools, and executes multi-turn tasks with complete observability and immutable audit traces.
-          </p>
+            <p className="text-base sm:text-lg text-ink-secondary max-w-2xl font-sans leading-relaxed">
+              Describe what you want your AI agent to achieve. Fable configures its instructions, sandboxes its tools, and executes multi-turn tasks with complete observability and immutable audit traces.
+            </p>
 
-          {/* Primary & Secondary Call to Actions */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            {isAuthenticated ? (
-              <Link to="/dashboard">
-                <Button variant="primary" size="lg" icon={ArrowRight} className="font-mono text-xs">
-                  Enter Agent Workshop
+            {/* Primary & Secondary Call to Actions */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              {isAuthenticated ? (
+                <Link to="/dashboard">
+                  <Button variant="primary" size="lg" icon={ArrowRight} className="font-mono text-xs">
+                    Enter Agent Workshop
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/register">
+                  <Button variant="primary" size="lg" icon={ArrowRight} className="font-mono text-xs">
+                    Create Your First Agent
+                  </Button>
+                </Link>
+              )}
+
+              <a href="#blueprint">
+                <Button variant="outline" size="lg" icon={Layers} className="font-mono text-xs">
+                  Inspect 3D Blueprint
                 </Button>
-              </Link>
-            ) : (
-              <Link to="/register">
-                <Button variant="primary" size="lg" icon={ArrowRight} className="font-mono text-xs">
-                  Create Your First Agent
+              </a>
+
+              <a href="#simulation">
+                <Button variant="ghost" size="lg" icon={Sparkles} className="font-mono text-xs text-ink-secondary hover:text-ink">
+                  Try Live Simulation
                 </Button>
-              </Link>
-            )}
+              </a>
+            </div>
+          </div>
 
-            <a href="#blueprint">
-              <Button variant="outline" size="lg" icon={Layers} className="font-mono text-xs">
-                Inspect 3D Blueprint
-              </Button>
-            </a>
-
-            <a href="#simulation">
-              <Button variant="ghost" size="lg" icon={Sparkles} className="font-mono text-xs text-ink-secondary hover:text-ink">
-                Try Live Simulation
-              </Button>
-            </a>
+          {/* Right Column: Scaled & Compressed 3D Box Loader */}
+          <div className="hidden lg:flex items-center justify-center relative w-[280px] xl:w-[320px] h-[340px] pointer-events-none select-none">
+            <div className="transform scale-[0.78] xl:scale-[0.88] origin-center">
+              <Loader maskBg="#F9F8F5" />
+            </div>
           </div>
         </div>
 
