@@ -27,7 +27,9 @@ async function runE2EJourney() {
   const port = server.address().port;
   const BASE_URL = `http://127.0.0.1:${port}`;
   const ORIGIN = config.clientUrl || 'http://localhost:5173';
-  console.log(`[E2E] Ephemeral test server listening on port ${port}.\n`);
+  const timestamp = Date.now();
+  const userEmail = `e2e_creator_${timestamp}@fable.test`;
+  let agentId = null;
 
   try {
     // -------------------------------------------------------------
@@ -75,8 +77,6 @@ async function runE2EJourney() {
     // -------------------------------------------------------------
     // Step 2: Register Fresh User Account
     // -------------------------------------------------------------
-    const timestamp = Date.now();
-    const userEmail = `e2e_creator_${timestamp}@fable.test`;
     console.log(`\nStep 2: Registering user account (${userEmail})...`);
     const regRes = await fetch(`${BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
@@ -128,7 +128,7 @@ async function runE2EJourney() {
     });
     assert.strictEqual(createAgentRes.status, 201, 'Agent creation must return 201 Created');
     const agentData = await createAgentRes.json();
-    const agentId = agentData.agent.id;
+    agentId = agentData.agent.id;
     assert.ok(agentId, 'Created agent must possess an ID');
     console.log(`  ✓ Agent created with ID: ${agentId}`);
 
@@ -193,7 +193,7 @@ async function runE2EJourney() {
     }
 
     // -------------------------------------------------------------
-    // Step 6: Execute Standalone Task Run
+    // Step 6: Execute Standalone Task Run (Live Groq + Calculator Tool)
     // -------------------------------------------------------------
     console.log('\nStep 6: Executing task run on agent with Calculator tool...');
     const taskInput = 'Evaluate the expression: (25 * 4) + (150 / 3)';
@@ -206,20 +206,14 @@ async function runE2EJourney() {
       }),
     });
 
-    let executionId;
-    if (runRes.status === 200) {
-      const runData = await runRes.json();
-      assert.strictEqual(runData.execution.status, 'completed', 'Execution should complete successfully');
-      assert.ok(runData.execution.output, 'Execution must produce output text');
-      assert.ok(runData.execution.durationMs >= 0, 'Duration must be recorded');
-      executionId = runData.execution.id;
-      console.log(`  ✓ Task executed in ${runData.execution.durationMs}ms (Execution ID: ${executionId})`);
-      console.log(`  ✓ Output preview: "${runData.execution.output.slice(0, 80).replace(/\n/g, ' ')}..."`);
-    } else {
-      console.log(`  ℹ Run returned status ${runRes.status}. Verifying error capture.`);
-      const errData = await runRes.json();
-      assert.ok(errData.error, 'Must return structured error');
-    }
+    assert.strictEqual(runRes.status, 200, `Live task execution must succeed with 200 OK. Received status ${runRes.status}`);
+    const runData = await runRes.json();
+    assert.strictEqual(runData.execution.status, 'completed', 'Execution should complete successfully');
+    assert.ok(runData.execution.output, 'Execution must produce output text');
+    assert.ok(runData.execution.durationMs >= 0, 'Duration must be recorded');
+    const executionId = runData.execution.id;
+    console.log(`  ✓ Task executed in ${runData.execution.durationMs}ms (Execution ID: ${executionId})`);
+    console.log(`  ✓ Output preview: "${runData.execution.output.slice(0, 80).replace(/\n/g, ' ')}..."`);
 
     // -------------------------------------------------------------
     // Step 7: Verify Execution History & Snapshot Immutability
@@ -231,7 +225,28 @@ async function runE2EJourney() {
     assert.strictEqual(historyRes.status, 200, 'Execution history must return 200 OK');
     const historyData = await historyRes.json();
     assert.ok(Array.isArray(historyData.executions), 'History must return executions array');
-    console.log(`  ✓ Retrieved history: ${historyData.executions.length} record(s) found for agent.`);
+    assert.strictEqual(historyData.executions.length, 1, 'Should find exactly 1 execution record for agent');
+    
+    const execRecord = historyData.executions[0];
+    assert.ok(execRecord.agentSnapshot, 'Execution list item must contain agentSnapshot projection');
+    assert.strictEqual(execRecord.agentSnapshot.name, 'Scientific Evaluator Agent', 'Snapshot must preserve agent name');
+    assert.ok(execRecord.toolNames.includes('calculator'), 'Projected toolNames must include calculator');
+
+    // Fetch full execution detail document to verify complete immutable snapshot and tool traces
+    const detailRes = await fetch(`${BASE_URL}/api/v1/executions/${execRecord.id}`, {
+      headers: authHeaders(),
+    });
+    assert.strictEqual(detailRes.status, 200, 'Execution detail must return 200 OK');
+    const detailData = await detailRes.json();
+    const fullExec = detailData.execution;
+    assert.ok(fullExec.agentSnapshot, 'Execution detail must contain full agentSnapshot');
+    assert.strictEqual(fullExec.agentSnapshot.name, 'Scientific Evaluator Agent');
+    assert.deepStrictEqual(fullExec.agentSnapshot.tools, ['calculator'], 'Snapshot must preserve allowlisted tools');
+    assert.ok(Array.isArray(fullExec.toolTraces), 'Execution must contain toolTraces array');
+    assert.ok(fullExec.toolTraces.length >= 1, 'Must contain at least 1 tool invocation trace');
+    assert.strictEqual(fullExec.toolTraces[0].tool, 'calculator', 'Recorded tool must be calculator');
+    assert.ok(fullExec.toolTraces[0].args, 'Tool trace must preserve invocation arguments');
+    console.log(`  ✓ Retrieved history & execution detail verified with immutable agentSnapshot & calculator tool traces.`);
 
     // -------------------------------------------------------------
     // Step 8: Verify Logout & Session Invalidation
@@ -256,6 +271,22 @@ async function runE2EJourney() {
     console.log('=== All 8 End-to-End User Journey Steps PASSED Successfully! ===');
     console.log('================================================================\n');
   } finally {
+    // Clean up created test database records
+    try {
+      if (mongoose.connection.readyState !== 0) {
+        if (agentId) {
+          await mongoose.connection.collection('agents').deleteOne({ _id: new mongoose.Types.ObjectId(agentId) });
+          await mongoose.connection.collection('executions').deleteMany({ agent: new mongoose.Types.ObjectId(agentId) });
+        }
+        await mongoose.connection.collection('users').deleteMany({
+          email: { $in: [userEmail, `unauthorized_${timestamp}@fable.test`] }
+        });
+        console.log('[E2E] Cleaned up test database records (users, agent, execution logs).');
+      }
+    } catch (cleanupErr) {
+      console.warn('[E2E] Cleanup warning:', cleanupErr.message);
+    }
+
     server.close();
     await mongoose.disconnect();
     console.log('[E2E] Ephemeral server closed & database disconnected.');
