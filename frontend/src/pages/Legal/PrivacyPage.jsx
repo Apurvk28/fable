@@ -90,7 +90,7 @@ export const PrivacyPage = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <p>
-                Every agent configuration and execution trace in Fable is cryptographically bound to your authenticated user account (<code className="font-mono text-xs px-1 bg-paper-muted border border-hairline rounded">owner: req.user._id</code>).
+                Every agent configuration and execution trace in Fable is cryptographically bound to your authenticated user account (<code className="font-mono text-xs px-1 bg-paper-muted border border-hairline rounded">owner: authenticated user</code>).
               </p>
               <p>
                 All database queries enforce ownership checks at the API controller layer. A user attempting to query or modify an agent or execution belonging to another builder receives a 404 Not Found response, completely shielding your prompts and outputs from cross-account discovery.

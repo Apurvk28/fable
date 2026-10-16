@@ -52,7 +52,7 @@ export const Register = () => {
     setSubmitting(true);
     try {
       await register(fullName, email.trim(), password);
-      navigate('/dashboard', { replace: true });
+      navigate('/profile', { replace: true, state: { justRegistered: true } });
     } catch (err) {
       setFormError(err.message || 'Registration failed. Please try again.');
     } finally {

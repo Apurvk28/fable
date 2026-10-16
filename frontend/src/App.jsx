@@ -25,6 +25,7 @@ const TermsPage = lazy(() => import('./pages/Legal/TermsPage').then(m => ({ defa
 const CookiesPage = lazy(() => import('./pages/Legal/CookiesPage').then(m => ({ default: m.CookiesPage })));
 const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const GithubPage = lazy(() => import('./pages/Legal/GithubPage').then(m => ({ default: m.GithubPage })));
+const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 import { 
   Activity, 
@@ -182,21 +183,21 @@ function DashboardView() {
             </Card>
           </Link>
 
-          {/* Metric 3: Infrastructure Health */}
+          {/* Metric 3: Platform Status */}
           <Card className="bg-white h-full">
             <CardContent className="p-4 flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block">
-                  Backend API &amp; DB
+                  Platform Status
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-serif text-3xl text-ink font-normal">
-                    {healthLatency ? `${healthLatency}ms` : 'Online'}
+                  <span className="font-serif text-2xl sm:text-3xl text-ink font-normal">
+                    Operational
                   </span>
-                  <Badge variant="success" size="sm" dot={true}>200 OK</Badge>
+                  <Badge variant="success" size="sm" dot={true}>Healthy</Badge>
                 </div>
                 <span className="text-[11px] font-mono text-ink-secondary block">
-                  {healthData?.service || 'fable-backend'} (:5001)
+                  All systems active
                 </span>
               </div>
               <div className="w-10 h-10 rounded-sm bg-emerald-50 border border-status-success/30 text-status-success flex items-center justify-center font-bold">
@@ -205,26 +206,28 @@ function DashboardView() {
             </CardContent>
           </Card>
 
-          {/* Metric 4: Session Security */}
-          <Card className="bg-white h-full">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="space-y-1 overflow-hidden">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block">
-                  Session Security
-                </span>
-                <div className="text-xs font-mono font-semibold text-status-success flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 shrink-0" />
-                  <span>HttpOnly &middot; SameSite</span>
+          {/* Metric 4: User Profile & Session Security */}
+          <Link to="/profile" className="block group">
+            <Card className="bg-white hover:border-ink/50 transition-colors h-full">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="space-y-1 overflow-hidden">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block">
+                    User Profile
+                  </span>
+                  <div className="text-xs font-mono font-semibold text-status-success flex items-center gap-1">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                    <span>Active Session</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-ink-secondary truncate block max-w-[150px] group-hover:text-ink transition-colors">
+                    {user?.name || user?.email}
+                  </span>
                 </div>
-                <span className="text-[11px] font-mono text-ink-muted truncate block max-w-[150px]">
-                  ID: {user?.id}
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-sm bg-ink text-white flex items-center justify-center font-bold font-mono text-sm">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-            </CardContent>
-          </Card>
+                <div className="w-10 h-10 rounded-sm bg-ink text-white flex items-center justify-center font-bold font-mono text-sm transition-transform group-hover:scale-105">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
 
         {/* 12-Column Responsive Workspace Grid matching Window Ratio (8 Cols Left / 4 Cols Right) */}
@@ -458,41 +461,37 @@ function DashboardView() {
               </CardContent>
             </Card>
 
-            {/* Platform Health & Infrastructure */}
+            {/* Platform & Execution Policy */}
             <Card className="bg-white">
               <CardHeader className="pb-3 border-b border-hairline/60">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Server className="w-4 h-4 text-ink-secondary" />
-                    <CardTitle className="text-sm">Platform Infrastructure</CardTitle>
+                    <CardTitle className="text-sm">Workspace Policy &amp; Security</CardTitle>
                   </div>
-                  <Badge variant="success" size="sm" dot={true}>200 OK</Badge>
+                  <Badge variant="success" size="sm" dot={true}>Active</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-4 space-y-2.5 text-xs font-mono">
                 <div className="flex items-center justify-between py-1 border-b border-hairline/40">
-                  <span className="text-ink-muted">Backend Service</span>
-                  <span className="text-ink font-semibold">{healthData?.service || 'fable-backend'}</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-hairline/40">
-                  <span className="text-ink-muted">Port / Gateway</span>
-                  <span className="text-ink">:5001</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-hairline/40">
-                  <span className="text-ink-muted">Environment</span>
-                  <span className="text-ink">{healthData?.environment || 'development'}</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-hairline/40">
                   <span className="text-ink-muted">Inference Engine</span>
-                  <span className="text-ink">Groq LPU</span>
+                  <span className="text-ink font-semibold">Groq LPU Acceleration</span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-hairline/40">
-                  <span className="text-ink-muted">Database Engine</span>
-                  <span className="text-ink">MongoDB 8.0</span>
+                  <span className="text-ink-muted">Tool Execution</span>
+                  <span className="text-ink">Strict Allowlist Sandbox</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-hairline/40">
+                  <span className="text-ink-muted">ReAct Loop Hard Cap</span>
+                  <span className="text-ink">3 Turns Max</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-hairline/40">
+                  <span className="text-ink-muted">Session Protection</span>
+                  <span className="text-ink">HttpOnly &middot; SameSite=Lax</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-ink-muted">Loop Hard Cap</span>
-                  <span className="text-ink">3 Turns Max</span>
+                  <span className="text-ink-muted">CSRF Enforcement</span>
+                  <span className="text-ink">Double-Submit Signed</span>
                 </div>
               </CardContent>
             </Card>
@@ -507,15 +506,18 @@ function DashboardView() {
               </CardHeader>
               <CardContent className="p-4 space-y-2 text-xs font-mono">
                 <div>
-                  <span className="text-ink-muted text-[10px] uppercase block">Authenticated ID</span>
-                  <span className="text-ink font-semibold truncate block">{user?.id}</span>
+                  <span className="text-ink-muted text-[10px] uppercase block">Developer Account</span>
+                  <span className="text-ink font-semibold truncate block">{user?.name}</span>
                 </div>
                 <div>
                   <span className="text-ink-muted text-[10px] uppercase block">Verified Email</span>
                   <span className="text-ink font-semibold truncate block">{user?.email}</span>
                 </div>
-                <div className="pt-2 border-t border-hairline/40 text-[10px] text-ink-muted">
-                  Cryptographically guarded by signed HttpOnly SameSite=Lax cookies.
+                <div className="pt-2 border-t border-hairline/40 text-[10px] text-ink-muted flex items-center justify-between">
+                  <span>Cryptographically guarded session</span>
+                  <Link to="/profile" className="text-ink font-sans underline underline-offset-2 hover:text-ink-secondary font-medium">
+                    Profile &rarr;
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -616,6 +618,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <AgentPlayground />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

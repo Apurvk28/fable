@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -6,6 +6,15 @@ import { Loader2 } from 'lucide-react';
 export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!user && sessionStorage.getItem('fable_logged_out')) {
+      const timer = setTimeout(() => {
+        sessionStorage.removeItem('fable_logged_out');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -22,7 +31,6 @@ export const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     if (sessionStorage.getItem('fable_logged_out')) {
-      sessionStorage.removeItem('fable_logged_out');
       return <Navigate to="/" replace />;
     }
     // Redirect unauthenticated visitor to login page while saving the intended destination

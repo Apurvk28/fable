@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { ShieldCheck, LogOut, Bot, LayoutDashboard, Play, Clock } from 'lucide-react';
 
@@ -12,9 +11,11 @@ export const Navbar = ({ backendStatus }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();
-    } finally {
+      sessionStorage.setItem('fable_logged_out', 'true');
       navigate('/', { replace: true });
+      await logout();
+    } catch (err) {
+      console.error('Logout failed:', err);
     }
   };
 
@@ -42,9 +43,6 @@ export const Navbar = ({ backendStatus }) => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-serif font-bold text-xl tracking-tight text-ink">Fable</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted border border-hairline px-1.5 py-0.2 rounded-sm bg-paper-muted">
-                  v1.0
-                </span>
               </div>
               <p className="text-[11px] text-ink-secondary hidden sm:block">Imagine It. Automate It.</p>
             </div>
@@ -119,33 +117,27 @@ export const Navbar = ({ backendStatus }) => {
           )}
         </div>
 
-        {/* Status Indicators & Auth Controls */}
+        {/* Auth Controls */}
         <div className="flex items-center gap-3">
-          {backendStatus?.status === 'ok' ? (
-            <Badge variant="success" dot={true} size="md" className="hidden sm:inline-flex">
-              API (:5001)
-            </Badge>
-          ) : backendStatus?.status === 'error' ? (
-            <Badge variant="error" dot={true} size="md" className="hidden sm:inline-flex">
-              API Offline
-            </Badge>
-          ) : null}
-
           {user ? (
             <div className="flex items-center gap-3 pl-3 border-l border-hairline">
-              <div className="flex items-center gap-2 text-left">
-                <div className="w-7 h-7 rounded-sm bg-fable-chartreuse/25 border border-ink text-ink flex items-center justify-center font-mono font-bold text-xs">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 text-left group hover:opacity-85 transition-opacity cursor-pointer"
+                title="View Developer Profile"
+              >
+                <div className="w-7 h-7 rounded-sm bg-fable-chartreuse/25 border border-ink text-ink flex items-center justify-center font-mono font-bold text-xs shadow-sm group-hover:bg-fable-chartreuse/40 transition-colors">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="hidden md:block">
-                  <div className="text-xs font-medium text-ink leading-tight truncate max-w-[140px]">
+                  <div className="text-xs font-medium text-ink leading-tight truncate max-w-[140px] group-hover:underline">
                     {user.name}
                   </div>
                   <div className="text-[10px] font-mono text-ink-muted truncate max-w-[140px]">
                     {user.email}
                   </div>
                 </div>
-              </div>
+              </Link>
 
               <Button
                 variant="outline"
